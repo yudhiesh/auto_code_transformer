@@ -6,8 +6,8 @@ import pytest
 
 from click.testing import CliRunner
 
-from auto_code_transformer import auto_code_transformer
-from auto_code_transformer import cli
+# from src import auto_code_transformer
+from src import cli
 
 
 @pytest.fixture
