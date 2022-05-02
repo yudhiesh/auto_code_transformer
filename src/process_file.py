@@ -1,20 +1,37 @@
+from abc import ABC, abstractmethod
 from typing import Optional
+
 from redbaron import RedBaron
 
 
-class ProcessPythonFile:
+class ProcessPythonFileBase(ABC):
     def __init__(self, file_path: str) -> None:
         self.file_path = file_path
         self._red_baron_object: Optional[RedBaron] = None
 
     @property
+    @abstractmethod
+    def red_baron_object(self) -> RedBaron:
+        ...
+
+    @abstractmethod
+    def read_file(self) -> None:
+        ...
+
+    @abstractmethod
+    def write_file(self) -> None:
+        ...
+
+
+class ProcessPythonFile(ProcessPythonFileBase):
+    def __init__(self, file_path: str) -> None:
+        super().__init__(file_path)
+
+    @property
     def red_baron_object(self) -> RedBaron:
         if self._red_baron_object:
             return self._red_baron_object
-        else:
-            raise AttributeError(
-                "Run read_file() first before accessing red_baron_object"
-            )
+        raise AttributeError("Run read_file() first before accessing red_baron_object")
 
     def read_file(self) -> None:
         try:

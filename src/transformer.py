@@ -8,7 +8,7 @@ from src.exceptions import (
     AssignmentValueUpdateError,
     TransformationFailed,
 )
-from src.process_file import ProcessPythonFile
+from src.process_file import ProcessPythonFileBase
 
 
 class ValueTransformerBase(ABC):
@@ -16,7 +16,7 @@ class ValueTransformerBase(ABC):
 
     def __init__(
         self,
-        processor: ProcessPythonFile,
+        processor: ProcessPythonFileBase,
         values: Dict[str, str],
     ) -> None:
         self.processor = processor
@@ -61,7 +61,7 @@ class AssignmentValueTransformer(ValueTransformerBase):
 
     def __init__(
         self,
-        processor: ProcessPythonFile,
+        processor: ProcessPythonFileBase,
         values: Dict[str, str],
     ) -> None:
         super().__init__(
