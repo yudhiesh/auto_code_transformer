@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Optional, List
+from typing import Any, Callable, Dict, Optional
 
 from redbaron.redbaron import RedBaron
 
@@ -35,7 +35,7 @@ class ValueTransformerBase(ABC):
         red_object: RedBaron,
         find: str,
         change_to: str,
-        func: Optional[Callable] = None,
+        func: Optional[Callable[[Any], str]] = None,
     ) -> None:
         """
         Transforms a value within the RedBaron object
@@ -90,7 +90,9 @@ class AssignmentValueTransformer(ValueTransformerBase):
         redbaron_object: RedBaron,
         find: str,
         to_change: str,
-        func: Optional[Callable] = None,
+        func: Optional[
+            Callable[[Any], str],
+        ] = None,
     ) -> None:
         assignment = redbaron_object.find(
             "assignment",
