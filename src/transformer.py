@@ -27,7 +27,6 @@ class ValueTransformerBase(ABC):
         """
         Main function to run the entire transformation
         """
-        ...
 
     @abstractmethod
     def _transform_value(
@@ -44,14 +43,12 @@ class ValueTransformerBase(ABC):
             find: Value to find within the Python code
             to_change: Value to update the found value to
         """
-        ...
 
     @abstractmethod
     def _is_transformation_valid(self) -> bool:
         """
         Validate transformation done by _transform_value()
         """
-        ...
 
 
 class AssignmentValueTransformer(ValueTransformerBase):

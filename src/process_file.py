@@ -12,20 +12,27 @@ class ProcessPythonFileBase(ABC):
     @property
     @abstractmethod
     def red_baron_object(self) -> RedBaron:
-        ...
+        """
+        Returns the red baron object property
+        """
 
     @abstractmethod
     def read_file(self) -> None:
-        ...
+        """
+        Reads the file and sets the Red Baron object
+        """
 
     @abstractmethod
-    def write_file(self) -> None:
-        ...
+    def write_file(self, code_object: RedBaron) -> None:
+        """
+        Writes the file with the updated Red Baron object
+        """
 
 
 class ProcessPythonFile(ProcessPythonFileBase):
     def __init__(self, file_path: str) -> None:
         super().__init__(file_path)
+        self._red_baron_object: Optional[RedBaron] = None
 
     @property
     def red_baron_object(self) -> RedBaron:
