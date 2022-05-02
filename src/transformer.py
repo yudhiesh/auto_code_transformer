@@ -35,15 +35,12 @@ class ValueTransformerBase(ABC):
         red_object: RedBaron,
         find: str,
         change_to: str,
-        func: Optional[Callable[[Any], str]] = None,
     ) -> None:
         """
         Transforms a value within the RedBaron object
         Args:
             red_object: RedBaron object which code transformations is
             done to
-            func: Function to apply custom transformation to retrieved value
-            on RedBaron object
             find: Value to find within the Python code
             to_change: Value to update the found value to
         """
@@ -90,9 +87,6 @@ class AssignmentValueTransformer(ValueTransformerBase):
         redbaron_object: RedBaron,
         find: str,
         to_change: str,
-        func: Optional[
-            Callable[[Any], str],
-        ] = None,
     ) -> None:
         assignment = redbaron_object.find(
             "assignment",
@@ -101,7 +95,7 @@ class AssignmentValueTransformer(ValueTransformerBase):
         if not assignment:
             raise AssignmentValueNotFound(f"Unable to find {to_change}!")
         try:
-            assignment.value = f"'{func(assignment.value) if func else to_change}'"
+            assignment.value = f"'{to_change}'"
         except Exception:
             raise AssignmentValueUpdateError("Error setting assignment value")
 
