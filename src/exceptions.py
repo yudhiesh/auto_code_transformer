@@ -4,7 +4,3 @@ class AssignmentValueNotFound(Exception):
 
 class AssignmentValueUpdateError(Exception):
     """Error thrown when updating the assignment value fails"""
-
-
-class TransformationFailed(Exception):
-    """Error thrown when transformation failed"""

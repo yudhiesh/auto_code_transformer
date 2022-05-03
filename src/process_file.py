@@ -11,22 +11,35 @@ class ProcessPythonFileBase(ABC):
 
     @property
     @abstractmethod
-    def red_baron_object(self) -> RedBaron:
+    def red_baron_object(self) -> Optional[RedBaron]:
         """
         Returns the red baron object property
         """
+        if self._red_baron_object:
+            return self._red_baron_object
+        raise AttributeError("Run read_file() first before accessing red_baron_object")
 
     @abstractmethod
     def read_file(self) -> None:
         """
         Reads the file and sets the Red Baron object
         """
+        try:
+            with open(self.file_path, "r") as source_code:
+                self._red_baron_object = RedBaron(source_code.read())
+        except Exception as e:
+            raise e
 
     @abstractmethod
     def write_file(self, code_object: RedBaron) -> None:
         """
         Writes the file with the updated Red Baron object
         """
+        try:
+            with open(self.file_path, "w") as source_code:
+                source_code.write(code_object.dumps())
+        except Exception as e:
+            raise e
 
 
 class ProcessPythonFile(ProcessPythonFileBase):
@@ -35,21 +48,11 @@ class ProcessPythonFile(ProcessPythonFileBase):
         self._red_baron_object: Optional[RedBaron] = None
 
     @property
-    def red_baron_object(self) -> RedBaron:
-        if self._red_baron_object:
-            return self._red_baron_object
-        raise AttributeError("Run read_file() first before accessing red_baron_object")
+    def red_baron_object(self) -> Optional[RedBaron]:
+        return super().red_baron_object
 
     def read_file(self) -> None:
-        try:
-            with open(self.file_path, "r") as source_code:
-                self._red_baron_object = RedBaron(source_code.read())
-        except Exception as e:
-            raise e
+        return super().read_file()
 
     def write_file(self, code_object: RedBaron) -> None:
-        try:
-            with open(self.file_path, "w") as source_code:
-                source_code.write(code_object.dumps())
-        except Exception as e:
-            raise e
+        return super().write_file(code_object)

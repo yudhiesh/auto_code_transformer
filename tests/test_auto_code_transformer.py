@@ -1,10 +1,11 @@
+from typing import Optional
 from click.testing import CliRunner
 from redbaron.redbaron import RedBaron
 
 import pytest
 from src import cli
 from src.exceptions import AssignmentValueNotFound
-from src.process_file import ProcessPythonFile
+from src.process_file import ProcessPythonFile, ProcessPythonFileBase
 from src.transformer import AssignmentValueTransformer
 
 PRE_TRANSFORM_FILE_PATH = "./staticdata/example.py"
@@ -50,17 +51,32 @@ def test_write_python_file_transform_func_docstring_value():
             {"": ""},
             "./staticdata/assignments.py",
             AssignmentValueNotFound,
-        )
+        ),
+        (
+            {"FILE_NAME": "test.py"},
+            "./staticdata/assignments.py",
+            RedBaron("FILE_NAME = 'test.py'"),
+        ),
     ],
 )
 def test_assignment_value_transformer(values, file_path, expected):
-    # TODO:
-    # mock ProcessPythonFile and replace red_baron_object
-    # with test version
-    # read_file() will set the object
-    # write_file() does nothing
+    class StubProcessPythonFile(ProcessPythonFileBase):
+        def __init__(self, file_path: str) -> None:
+            super().__init__(file_path)
+            self._red_baron_object: Optional[RedBaron] = None
+
+        @property
+        def red_baron_object(self) -> Optional[RedBaron]:
+            return super().red_baron_object
+
+        def read_file(self) -> None:
+            return super().read_file()
+
+        def write_file(self, code_object: RedBaron) -> None:
+            assert str(code_object.assignment.value) == str(expected.assignment.value)
+
     # Setup
-    py_file_processor = ProcessPythonFile(file_path=file_path)
+    py_file_processor = StubProcessPythonFile(file_path=file_path)
     assignment_value_transformer = AssignmentValueTransformer(
         processor=py_file_processor,
         values=values,

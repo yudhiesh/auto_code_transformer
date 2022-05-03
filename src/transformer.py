@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from typing import Dict
 
 from redbaron.redbaron import RedBaron
+from redbaron.nodes import AssignmentNode
 
 from src.exceptions import (
     AssignmentValueNotFound,
     AssignmentValueUpdateError,
-    TransformationFailed,
 )
 from src.process_file import ProcessPythonFileBase
 
@@ -31,23 +31,17 @@ class ValueTransformerBase(ABC):
     @abstractmethod
     def _transform_value(
         self,
-        red_object: RedBaron,
+        redbaron_object: RedBaron,
         find: str,
         change_to: str,
     ) -> None:
         """
         Transforms a value within the RedBaron object
         Args:
-            red_object: RedBaron object which code transformations is
+            redbaron_object: RedBaron object which code transformations is
             done to
             find: Value to find within the Python code
             to_change: Value to update the found value to
-        """
-
-    @abstractmethod
-    def _is_transformation_valid(self) -> bool:
-        """
-        Validate transformation done by _transform_value()
         """
 
 
@@ -75,8 +69,6 @@ class AssignmentValueTransformer(ValueTransformerBase):
                 find=key,
                 to_change=value,
             )
-            if not self._is_transformation_valid():
-                raise TransformationFailed(f"Transforming {key=} to {value=}")
         self.processor.write_file(redbaron_object)
 
     def _transform_value(
@@ -85,16 +77,22 @@ class AssignmentValueTransformer(ValueTransformerBase):
         find: str,
         to_change: str,
     ) -> None:
-        assignment = redbaron_object.find(
-            "assignment",
-            target=lambda x: x.dumps() == find,
-        )
-        if not assignment:
-            raise AssignmentValueNotFound(f"Unable to find {to_change}!")
+        assignment = self.__find_value(redbaron_object, find, to_change)
         try:
             assignment.value = f"'{to_change}'"
         except Exception:
             raise AssignmentValueUpdateError("Error setting assignment value")
 
-    def _is_transformation_valid(self) -> bool:
-        return True
+    def __find_value(
+        self,
+        redbaron_object: RedBaron,
+        find: str,
+        to_change: str,
+    ) -> AssignmentNode:
+        assignment: AssignmentNode = redbaron_object.find(
+            "assignment",
+            target=lambda x: x.dumps() == find,
+        )
+        if not assignment:
+            raise AssignmentValueNotFound(f"Unable to find {to_change}!")
+        return assignment
