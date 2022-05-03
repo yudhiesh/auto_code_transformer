@@ -1,7 +1,10 @@
 from redbaron.redbaron import RedBaron
 
 import pytest
-from src.exceptions import AssignmentValueUpdateError, ParentNotFound
+from src.exceptions import (
+    AssignmentValueUpdateError,
+    KwargsValueUpdateError,
+)
 from src.transformer import AssignmentValueTransformer, KwargsValueTransformer
 from tests.helper import get_stub_process_python_file, check_exception
 
@@ -49,8 +52,11 @@ def test_assignment_value_transformer(values, file_path, expected):
         (
             {"": ""},
             "./staticdata/assignments.py",
-            ParentNotFound,
-        )
+            KwargsValueUpdateError,
+        ),
+        # ({"model_id": "0990909090123"},
+        #  "./staticdata/model_store_example.py",
+        # )
     ],
 )
 def test_kwargs_value_transformer(values, file_path, expected):

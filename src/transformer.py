@@ -159,7 +159,17 @@ class KwargsValueTransformer(ValueTransformerBase):
         to_find: Union[str, int],
     ) -> CallArgumentNode:
         try:
-            parent = redbaron_object.find("name", value=to_find).parent
-            return parent
+            # God this is bad, but its the only way I could get it to work with
+            # multiple cases of the kwarg key existing in the same file.
+
+            # If you know for sure that there is just a single kwarg with the
+            # key to_change in the entire file then:
+            # parent = red_object.find("name",value=to_change).parent
+            # would be sufficient
+            for node in redbaron_object.find_all("name", to_find):
+                if call_arg := node.parent.call_argument:
+                    if call_arg_str := call_arg.string:
+                        if call_arg_parent := call_arg_str.parent:
+                            return call_arg_parent
         except AttributeError:
             raise ParentNotFound(f"Parent of {to_find} was not found")
