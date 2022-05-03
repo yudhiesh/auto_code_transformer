@@ -3,7 +3,7 @@ from redbaron.redbaron import RedBaron
 import pytest
 from src.exceptions import AssignmentValueNotFound
 from src.transformer import AssignmentValueTransformer
-from testing.helper import get_stub_process_python_file, check_exception
+from tests.helper import get_stub_process_python_file, check_exception
 
 
 @pytest.mark.parametrize(
