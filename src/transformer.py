@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Union
 
 from redbaron.nodes import AssignmentNode
 from redbaron.redbaron import RedBaron
@@ -72,24 +72,33 @@ class AssignmentValueTransformer(ValueTransformerBase):
         self,
         redbaron_object: RedBaron,
         find: str,
-        to_change: str,
+        to_change: Union[str, int],
     ) -> None:
-        assignment = self.__find_value(redbaron_object, find, to_change)
+        assignment = self.__find_value(redbaron_object, find)
         try:
-            assignment.value = f"'{to_change}'"
+            if isinstance(to_change, str):
+                assignment.value = f"'{to_change}'"
+            elif isinstance(to_change, int):
+                assignment.int.value = f"{to_change}"
+            # TODO:
+            # Cleanup handling of different instance types using Adapter
+            # Strategy
+            else:
+                raise NotImplementedError(
+                    "Altering other types of values is not yet supported"
+                )
         except Exception:
             raise AssignmentValueUpdateError("Error setting assignment value")
 
     def __find_value(
         self,
         redbaron_object: RedBaron,
-        find: str,
-        to_change: str,
+        to_find: str,
     ) -> AssignmentNode:
         assignment: AssignmentNode = redbaron_object.find(
             "assignment",
-            target=lambda x: x.dumps() == find,
+            target=lambda x: x.dumps() == to_find,
         )
         if not assignment:
-            raise AssignmentValueNotFound(f"Unable to find {to_change}!")
+            raise AssignmentValueNotFound(f"Unable to find {to_find}!")
         return assignment
