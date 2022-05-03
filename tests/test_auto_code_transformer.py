@@ -1,37 +1,59 @@
-#!/usr/bin/env python
+from typing import Optional
 
-"""Tests for `auto_code_transformer` package."""
+from redbaron.redbaron import RedBaron
 
 import pytest
-
-from click.testing import CliRunner
-
-# from src import auto_code_transformer
-from src import cli
+from src.exceptions import AssignmentValueNotFound
+from src.process_file import ProcessPythonFileBase
+from src.transformer import AssignmentValueTransformer
 
 
-@pytest.fixture
-def response():
-    """Sample pytest fixture.
+@pytest.mark.parametrize(
+    "values,file_path,expected",
+    [
+        (
+            {"": ""},
+            "./staticdata/assignments.py",
+            AssignmentValueNotFound,
+        ),
+        (
+            {"FILE_NAME": "test.py"},
+            "./staticdata/assignments.py",
+            RedBaron("FILE_NAME = 'test.py'"),
+        ),
+        (
+            {"file_name": "test.py"},
+            "./staticdata/assignments.py",
+            AssignmentValueNotFound,
+        ),
+    ],
+)
+def test_assignment_value_transformer(values, file_path, expected):
+    class StubProcessPythonFile(ProcessPythonFileBase):
+        def __init__(self, file_path: str) -> None:
+            super().__init__(file_path)
+            self._red_baron_object: Optional[RedBaron] = None
 
-    See more at: http://doc.pytest.org/en/latest/fixture.html
-    """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+        @property
+        def red_baron_object(self) -> Optional[RedBaron]:
+            return super().red_baron_object
 
+        def read_file(self) -> None:
+            return super().read_file()
 
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
+        def write_file(self, code_object: RedBaron) -> None:
+            assert str(code_object.assignment.value) == str(expected.assignment.value)
 
-
-def test_command_line_interface():
-    """Test the CLI."""
-    runner = CliRunner()
-    result = runner.invoke(cli.main)
-    assert result.exit_code == 0
-    assert 'auto_code_transformer.cli.main' in result.output
-    help_result = runner.invoke(cli.main, ['--help'])
-    assert help_result.exit_code == 0
-    assert '--help  Show this message and exit.' in help_result.output
+    # Setup
+    py_file_processor = StubProcessPythonFile(file_path=file_path)
+    assignment_value_transformer = AssignmentValueTransformer(
+        processor=py_file_processor,
+        values=values,
+    )
+    # Exercise
+    if type(expected) == type and issubclass(expected, Exception):
+        # Verify
+        with pytest.raises(expected):
+            assignment_value_transformer.run()
+    else:
+        assignment_value_transformer.run()
