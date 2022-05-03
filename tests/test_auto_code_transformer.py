@@ -21,6 +21,11 @@ from src.transformer import AssignmentValueTransformer
             "./staticdata/assignments.py",
             RedBaron("FILE_NAME = 'test.py'"),
         ),
+        (
+            {"file_name": "test.py"},
+            "./staticdata/assignments.py",
+            AssignmentValueNotFound,
+        ),
     ],
 )
 def test_assignment_value_transformer(values, file_path, expected):
