@@ -1,13 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from redbaron.redbaron import RedBaron
 from redbaron.nodes import AssignmentNode
+from redbaron.redbaron import RedBaron
 
-from src.exceptions import (
-    AssignmentValueNotFound,
-    AssignmentValueUpdateError,
-)
+from src.exceptions import AssignmentValueNotFound, AssignmentValueUpdateError
 from src.process_file import ProcessPythonFileBase
 
 
