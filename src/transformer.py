@@ -1,10 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Union
 
-from redbaron.nodes import AssignmentNode
+from redbaron.nodes import AssignmentNode, CallArgumentNode
 from redbaron.redbaron import RedBaron
 
-from src.exceptions import AssignmentValueNotFound, AssignmentValueUpdateError
+from src.exceptions import (
+    AssignmentValueNotFound,
+    AssignmentValueUpdateError,
+    KwargsValueUpdateError,
+    ParentNotFound,
+)
 from src.process_file import ProcessPythonFileBase
 
 
@@ -38,7 +43,7 @@ class ValueTransformerBase(ABC):
             redbaron_object: RedBaron object which code transformations is
             done to
             find: Value to find within the Python code
-            to_change: Value to update the found value to
+            change_to: Value to update the found value to
         """
 
 
@@ -59,31 +64,33 @@ class AssignmentValueTransformer(ValueTransformerBase):
 
     def run(self):
         self.processor.read_file()
-        redbaron_object = self.processor.red_baron_object
+        redbaron_object: RedBaron = self.processor.red_baron_object
         for key, value in self.values.items():
             self._transform_value(
                 redbaron_object=redbaron_object,
-                find=key,
-                to_change=value,
+                to_find=key,
+                change_to=value,
             )
         self.processor.write_file(redbaron_object)
 
     def _transform_value(
         self,
         redbaron_object: RedBaron,
-        find: str,
-        to_change: Union[str, int],
+        to_find: str,
+        change_to: Union[str, int],
     ) -> None:
-        assignment = self.__find_value(redbaron_object, find)
+        assignment = self.__find_value(
+            redbaron_object=redbaron_object,
+            to_find=to_find,
+        )
         try:
-            if isinstance(to_change, str):
-                assignment.value = f"'{to_change}'"
-            elif isinstance(to_change, int):
-                assignment.int.value = f"{to_change}"
-            # TODO:
-            # Cleanup handling of different instance types using Adapter
-            # Strategy
+            if isinstance(change_to, str):
+                assignment.value = f"'{change_to}'"
+            elif isinstance(change_to, int):
+                assignment.value = f"{change_to}"
             else:
+                # TODO:
+                # Cleanup handling of different instance types
                 raise NotImplementedError(
                     "Altering other types of values is not yet supported"
                 )
@@ -95,10 +102,64 @@ class AssignmentValueTransformer(ValueTransformerBase):
         redbaron_object: RedBaron,
         to_find: str,
     ) -> AssignmentNode:
-        assignment: AssignmentNode = redbaron_object.find(
-            "assignment",
-            target=lambda x: x.dumps() == to_find,
-        )
-        if not assignment:
+        try:
+            assignment: AssignmentNode = redbaron_object.find(
+                "assignment",
+                target=lambda x: x.dumps() == to_find,
+            )
+            return assignment
+        except Exception:
             raise AssignmentValueNotFound(f"Unable to find {to_find}!")
-        return assignment
+
+
+class KwargsValueTransformer(ValueTransformerBase):
+    def __init__(
+        self,
+        processor: ProcessPythonFileBase,
+        values: Dict[str, str],
+    ) -> None:
+        super().__init__(processor, values)
+
+    def run(self) -> None:
+        self.processor.read_file()
+        redbaron_object: RedBaron = self.processor.red_baron_object
+        for key, value in self.values.items():
+            self._transform_value(
+                redbaron_object=redbaron_object,
+                to_find=key,
+                change_to=value,
+            )
+        self.processor.write_file(redbaron_object)
+
+    def _transform_value(
+        self,
+        redbaron_object: RedBaron,
+        to_find: str,
+        change_to: Union[str, int],
+    ) -> None:
+        parent = self.__get_kwarg_parent(
+            redbaron_object=redbaron_object,
+            to_find=to_find,
+        )
+        try:
+            if isinstance(change_to, str):
+                parent.value = f"'{change_to}'"
+            elif isinstance(change_to, int):
+                parent.value = f"{change_to}"
+            else:
+                raise NotImplementedError(
+                    "Altering other types of values is not yet supported"
+                )
+        except Exception:
+            raise KwargsValueUpdateError("Error setting assignment value")
+
+    def __get_kwarg_parent(
+        self,
+        redbaron_object: RedBaron,
+        to_find: Union[str, int],
+    ) -> CallArgumentNode:
+        try:
+            parent = redbaron_object.find("name", value=to_find).parent
+            return parent
+        except AttributeError:
+            raise ParentNotFound(f"Parent of {to_find} was not found")
