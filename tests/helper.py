@@ -33,7 +33,17 @@ def get_stub_process_python_file(expected):
                     expected.get("redbaron_object").assignment.value
                 )
             elif transformation_type and transformation_type == "kwargs":
-                ...
+                code_object_string = (
+                    code_object[6].atomtrailers.call.value[1].string.value
+                )
+                redbaron_object_string = (
+                    expected.get("redbaron_object")[6]
+                    .atomtrailers.call.value[1]
+                    .string.value
+                )
+                assert code_object_string == redbaron_object_string
+            else:
+                raise Exception
 
     return StubProcessPythonFile
 
@@ -44,7 +54,6 @@ def check_exception(expected, func):
     run
     """
     if type(expected) == type and issubclass(expected, Exception):
-        # Verify
         with pytest.raises(expected):
             func()
     else:

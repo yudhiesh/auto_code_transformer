@@ -10,7 +10,7 @@ model_store = ModelStore.from_aws_s3(
 
 model = model_store.load(
     domain="test_domain",
-    model_id="1231238123891",
+    model_id="0990909090123",
 )
 
 model2 = model_store.load(
